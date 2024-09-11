@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Image,
@@ -35,10 +35,13 @@ import {
 } from "./MainScreenStyles";
 
 import { useCircleAnimation } from "../../animations/useCircleAnimation";
+import { SubscriptionModal } from "../../components/Modal";
+import Stories from "../../components/Stories";
 
 export const MainScreen = () => {
   const animatedStyle1 = useCircleAnimation();
   const navigation = useNavigation();
+  const [isModalVisible, setModalVisible] = useState(true);
 
   return (
     <View style={{ flex: 1 }}>
@@ -57,6 +60,10 @@ export const MainScreen = () => {
           </SettingsButton>
         </Header>
         <Container>
+          <SubscriptionModal
+            visible={isModalVisible}
+            onClose={() => setModalVisible(false)}
+          />
           <Image
             style={{ width: 352, height: 110, marginTop: 20 }}
             source={require("../../assets/banner.png")}
@@ -78,10 +85,9 @@ export const MainScreen = () => {
               ></Image>
             </TouchableOpacity>
           </WelcomeBanner>
-          <AddButton
-            onPress={() => navigation.navigate("TextSpeech")}
-            style={{ marginTop: 300 }}
-          >
+          <Stories title={"Txt"} subTitle={"asfasfsafasf"}></Stories>
+
+          <AddButton onPress={() => navigation.navigate("TextSpeech")}>
             <View style={{ justifyContent: "center", alignItems: "center" }}>
               {/* Animated circles */}
               <Animated.View

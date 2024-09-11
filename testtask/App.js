@@ -17,7 +17,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Load">
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Load"
           component={LoadScreen}
           options={{ headerShown: false, animationEnabled: false, }}
@@ -31,13 +31,13 @@ export default function App() {
           name="Subscribe"
           component={SubscribeScreen}
           options={{ headerShown: false, animationEnabled: false, }}
-        />
+        /> */}
         <Stack.Screen
           name="Main"
           component={MainScreen}
           options={{ headerShown: false, animationEnabled: false, }}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Settings"
           component={SettingsScreen}
           options={{ headerShown: false, animationEnabled: false, }}
@@ -46,8 +46,9 @@ export default function App() {
           name="TextSpeech"
           component={TextSpeechScreen}
           options={{ headerShown: false, animationEnabled: false, }}
-        />
+        /> */}
       </Stack.Navigator>
     </NavigationContainer>
+
   );
 }

@@ -100,5 +100,9 @@ export const DateText = styled.Text`
   margin-bottom: 10px;
 `;
 export const AddButton = styled.TouchableOpacity`
-  margin-top: 300px;
+position: absolute;
+  top:550px;
+  align-self: center;
+
+  
 `;
