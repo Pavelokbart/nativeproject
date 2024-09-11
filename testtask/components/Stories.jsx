@@ -48,14 +48,27 @@ export const DateText = styled.Text`
   margin-right: 8px; /* Отступ справа от текста */
 `;
 
+const truncateSubTitle = (str) => {
+  if (str.length >= 18) {
+    return str.substring(0, 18) + "...";
+  }
+  return str;
+};
+const truncateTitle = (str) => {
+  if (str.length >= 10) {
+    return str.substring(0, 10);
+  }
+  return str;
+};
+
 // Основной компонент
 const Stories = ({ title, subTitle }) => {
   return (
     <WelcomeBanner>
       <WelcomeIcon source={require("../assets/iconPerson.png")} />
       <WelcomeTextContainer>
-        <WelcomeTitle>{title}</WelcomeTitle>
-        <WelcomeSubtitle>{subTitle}</WelcomeSubtitle>
+        <WelcomeTitle>{truncateTitle(title)}</WelcomeTitle>
+        <WelcomeSubtitle>{truncateSubTitle(subTitle)}</WelcomeSubtitle>
       </WelcomeTextContainer>
       <RightContainer>
         <DateText>06.02.2024</DateText>

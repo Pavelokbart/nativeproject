@@ -6,7 +6,12 @@ import {
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Alert,
 } from "react-native";
+import axios from "axios";
 import Animated, {
   Easing,
   useSharedValue,
@@ -43,6 +48,29 @@ export const MainScreen = () => {
   const navigation = useNavigation();
   const [isModalVisible, setModalVisible] = useState(true);
 
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchPosts = () => {
+    setIsLoading(true);
+    axios
+      .get("https://66d94e564ad2f6b8ed541df8.mockapi.io/test")
+      .then(({ data }) => {
+        setItems(data);
+      })
+      .catch((err) => {
+        console.log(err);
+        Alert.alert("Ошибка", "Не удалось получить статьи");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
   return (
     <View style={{ flex: 1 }}>
       <ImageBackground
@@ -69,7 +97,7 @@ export const MainScreen = () => {
             source={require("../../assets/banner.png")}
           ></Image>
 
-          <WelcomeBanner>
+          {/* <WelcomeBanner>
             <WelcomeIcon source={require("../../assets/iconPerson.png")} />
             <WelcomeTextContainer>
               <WelcomeTitle>Welcome</WelcomeTitle>
@@ -84,8 +112,17 @@ export const MainScreen = () => {
                 source={require("../../assets/back.png")}
               ></Image>
             </TouchableOpacity>
-          </WelcomeBanner>
-          <Stories title={"Txt"} subTitle={"asfasfsafasf"}></Stories>
+          </WelcomeBanner> */}
+          <FlatList
+            refreshControl={
+              <RefreshControl refreshing={isLoading} onRefresh={fetchPosts} />
+            }
+            data={items}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <Stories title={item.title} subTitle={item.text} />
+            )}
+          />
 
           <AddButton onPress={() => navigation.navigate("TextSpeech")}>
             <View style={{ justifyContent: "center", alignItems: "center" }}>

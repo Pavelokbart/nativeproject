@@ -8,6 +8,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import SettingsScreen from './screens/SettingsScreen/SettingsScreen';
 import TextSpeechScreen from './screens/TextSpeechScreen/TextSpeechScreen';
 import { NavigationContainer } from "@react-navigation/native";
+import TextSpeechResultScreen from './screens/TextSpeechResultScreen/TextSpeechResultScreen';
 
 const Stack = createStackNavigator();
 
@@ -35,6 +36,12 @@ export default function App() {
         <Stack.Screen
           name="Main"
           component={MainScreen}
+          options={{ headerShown: false, animationEnabled: false, }}
+        />
+
+        <Stack.Screen
+          name="TextSpeechResult"
+          component={TextSpeechResultScreen}
           options={{ headerShown: false, animationEnabled: false, }}
         />
         {/* <Stack.Screen
