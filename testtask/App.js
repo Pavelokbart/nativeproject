@@ -9,16 +9,18 @@ import SettingsScreen from './screens/SettingsScreen/SettingsScreen';
 import TextSpeechScreen from './screens/TextSpeechScreen/TextSpeechScreen';
 import { NavigationContainer } from "@react-navigation/native";
 import TextSpeechResultScreen from './screens/TextSpeechResultScreen/TextSpeechResultScreen';
-
+import { store } from './redux/store';
+import { Provider } from 'react-redux';
 const Stack = createStackNavigator();
 
 export default function App() {
 
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Load">
-        {/* <Stack.Screen
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Load">
+          <Stack.Screen
           name="Load"
           component={LoadScreen}
           options={{ headerShown: false, animationEnabled: false, }}
@@ -32,30 +34,31 @@ export default function App() {
           name="Subscribe"
           component={SubscribeScreen}
           options={{ headerShown: false, animationEnabled: false, }}
-        /> */}
-        <Stack.Screen
-          name="Main"
-          component={MainScreen}
-          options={{ headerShown: false, animationEnabled: false, }}
         />
+          <Stack.Screen
+            name="Main"
+            component={MainScreen}
+            options={{ headerShown: false, animationEnabled: false, }}
+          />
 
-        <Stack.Screen
-          name="TextSpeechResult"
-          component={TextSpeechResultScreen}
-          options={{ headerShown: false, animationEnabled: false, }}
-        />
-        {/* <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ headerShown: false, animationEnabled: false, }}
-        />
-        <Stack.Screen
-          name="TextSpeech"
-          component={TextSpeechScreen}
-          options={{ headerShown: false, animationEnabled: false, }}
-        /> */}
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen
+            name="TextSpeechResult"
+            component={TextSpeechResultScreen}
+            options={{ headerShown: false, animationEnabled: false, }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ headerShown: false, animationEnabled: false, }}
+          />
+          <Stack.Screen
+            name="TextSpeech"
+            component={TextSpeechScreen}
+            options={{ headerShown: false, animationEnabled: false, }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
 
   );
 }

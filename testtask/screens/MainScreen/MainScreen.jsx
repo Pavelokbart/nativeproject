@@ -22,6 +22,7 @@ import Animated, {
 import styled from "styled-components/native";
 import { StatusBar } from "expo-status-bar";
 import { useNavigation } from "@react-navigation/native";
+
 import {
   ImageScreen,
   TextSpeech,
@@ -42,34 +43,125 @@ import {
 import { useCircleAnimation } from "../../animations/useCircleAnimation";
 import { SubscriptionModal } from "../../components/Modal";
 import Stories from "../../components/Stories";
+import sha256 from "crypto-js/sha256";
+import Constants from "expo-constants";
+import { setAuthToken } from "../../redux/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 export const MainScreen = () => {
   const animatedStyle1 = useCircleAnimation();
   const navigation = useNavigation();
-  const [isModalVisible, setModalVisible] = useState(true);
+  const [isModalVisible, setModalVisible] = useState(false);
 
-  const [items, setItems] = useState([]);
+  const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pollingInterval, setPollingInterval] = useState(null);
 
-  const fetchPosts = () => {
-    setIsLoading(true);
-    axios
-      .get("https://66d94e564ad2f6b8ed541df8.mockapi.io/test")
-      .then(({ data }) => {
-        setItems(data);
-      })
-      .catch((err) => {
-        console.log(err);
-        Alert.alert("Ошибка", "Не удалось получить статьи");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+  const dispatch = useDispatch();
+
+  const generateChecksum = (deviceId, hasPremium, expiredAt) => {
+    const hashString = `${deviceId}:${hasPremium}:${expiredAt}aboba`;
+    return sha256(hashString).toString();
+  };
+
+  const devId = Constants.sessionId;
+  const authenticateUser = async () => {
+    const date = new Date().toISOString();
+
+    console.log("id", devId);
+    try {
+      const response = await fetch(
+        "https://test.api.meteoraiapps.com/api/v1/auth/jwt",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            deviceId: devId,
+            hasPremium: true,
+            expiredAt: date,
+            checksum: generateChecksum(devId, true, date),
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Токен авторизации:", data.accessToken);
+        dispatch(setAuthToken(data.accessToken));
+      } else {
+        console.error("Ошибка при аутентификации, статус:", response.status);
+        Alert.alert("Ошибка", "Не удалось выполнить аутентификацию.");
+      }
+    } catch (error) {
+      console.error("Ошибка при аутентификации:", error);
+      Alert.alert("Ошибка", "Не удалось выполнить аутентификацию.");
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const response = await fetch(
+        `https://test.api.meteoraiapps.com/api/v1/history/user/${devId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("User's generation history:", data);
+        setHistory(data);
+      } else {
+        console.error("Error fetching history, status:", response.status);
+        Alert.alert("Error", "Failed to fetch history.");
+      }
+    } catch (error) {
+      console.error("Error fetching history:", error);
+      Alert.alert("Error", "An error occurred while fetching the history.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchPosts();
+    authenticateUser();
   }, []);
+  const token = useSelector((state) => state.auth.token);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (token) {
+        // Начинаем поллинг при монтировании компонента
+        
+        const intervalId = setInterval(() => {
+          fetchHistory();
+        }, 1000);
+        setPollingInterval(intervalId);
+
+        return () => {
+          clearInterval(intervalId);
+        };
+      }
+    }, [token])
+  );
+
+  const handleAddStory = () => {
+    if (history.length >= 3) {
+      setModalVisible(true);
+    } else {
+      navigation.navigate("TextSpeech");
+    }
+  };
+
+  const handleStoryPress = (story) => {
+    navigation.navigate("TextSpeechResult", { story });
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -97,36 +189,34 @@ export const MainScreen = () => {
             source={require("../../assets/banner.png")}
           ></Image>
 
-          {/* <WelcomeBanner>
-            <WelcomeIcon source={require("../../assets/iconPerson.png")} />
-            <WelcomeTextContainer>
-              <WelcomeTitle>Welcome</WelcomeTitle>
-              <WelcomeSubtitle>
-                Welcome to Text to Speech, this app...
-              </WelcomeSubtitle>
-            </WelcomeTextContainer>
-            <DateText>06.02.2024</DateText>
-            <TouchableOpacity style={{ paddingLeft: 8, paddingRight: 18 }}>
-              <Image
-                style={{ width: 24, height: 24 }}
-                source={require("../../assets/back.png")}
-              ></Image>
-            </TouchableOpacity>
-          </WelcomeBanner> */}
-          <FlatList
-            refreshControl={
-              <RefreshControl refreshing={isLoading} onRefresh={fetchPosts} />
-            }
-            data={items}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <Stories title={item.title} subTitle={item.text} />
-            )}
-          />
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#0000ff" />
+          ) : history.length === 0 ? (
+            <Text>История пуста</Text>
+          ) : (
+            <FlatList
+              refreshControl={
+                <RefreshControl
+                  refreshing={isLoading}
+                  onRefresh={fetchHistory}
+                />
+              }
+              data={history}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <Stories
+                  title={item.title}
+                  subTitle={item.text}
+                  image={item.image}
+                  generationDate={item.generationDate}
+                  onPress={() => handleStoryPress(item)}
+                />
+              )}
+            />
+          )}
 
-          <AddButton onPress={() => navigation.navigate("TextSpeech")}>
+          <AddButton onPress={handleAddStory}>
             <View style={{ justifyContent: "center", alignItems: "center" }}>
-              {/* Animated circles */}
               <Animated.View
                 style={[
                   styles.circle,

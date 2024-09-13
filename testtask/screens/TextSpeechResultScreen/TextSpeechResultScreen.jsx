@@ -1,15 +1,7 @@
 import React from "react";
-import { useState } from "react";
-import {
-  View,
-  Image,
-  TextInput,
-  ImageBackground,
-  TouchableOpacity,
-  Text,
-} from "react-native";
+import { View, Image, ImageBackground, Text } from "react-native";
 import styled from "styled-components/native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 const Container = styled.View`
   flex: 1;
@@ -18,13 +10,14 @@ const Container = styled.View`
 const StyledImageBackground = styled.ImageBackground`
   flex: 1;
 `;
+
 export const Header = styled.View`
   display: flex;
   flex-direction: row;
   align-items: center;
   padding-left: 20px;
   padding-right: 20px;
-  margin-top: 40px;
+  margin-top: 30px;
 `;
 
 const HeaderTxt = styled.Text`
@@ -45,7 +38,7 @@ const SettingsButton = styled.TouchableOpacity`
   align-items: center;
 `;
 
-export const StyledTextInput = styled.View`
+const StyledTextInput = styled.View`
   width: 320px;
   height: 58px;
   border-width: 1px;
@@ -54,8 +47,9 @@ export const StyledTextInput = styled.View`
   border-radius: 20px;
   padding: 10px;
   font-size: 18px;
-  margin-top: 40px;
+  margin-top: 20px;
   color: #bcbcbc;
+  justify-content: center;
 `;
 
 const StyledTextArea = styled.View`
@@ -71,8 +65,55 @@ const StyledTextArea = styled.View`
   color: #bcbcbc;
 `;
 
+const TitleTxt = styled.Text`
+  color: white;
+  font-size: 20px;
+  line-height: 24px;
+`;
+
+const MainTxt = styled.Text`
+  color: white;
+  font-size: 16px;
+  line-height: 24px;
+`;
+
+const PersonIcon = styled.Image`
+  width: 145px;
+  height: 145px;
+  margin-top: 20px;
+`;
+
+const MediaIcon = styled.Image`
+  width: 301px;
+  height: 18px;
+  margin-top: 20px;
+`;
+
+const BlockButtons = styled.View`
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  align-items: center;
+  margin-top: 20px;
+`;
+
+const RepostBtn = styled.TouchableOpacity``;
+const RepostIcon = styled.Image`
+  width: 44px;
+  height: 44px;
+`;
+
+const PlayBtn = styled.TouchableOpacity``;
+const PlayIcon = styled.Image`
+  width: 80px;
+  height: 80px;
+`;
+
 const TextSpeechResultScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { story } = route.params;
+
   return (
     <Container>
       <StyledImageBackground
@@ -93,8 +134,33 @@ const TextSpeechResultScreen = () => {
           <HeaderTxt>Text to Speech</HeaderTxt>
         </Header>
         <View style={{ alignItems: "center", marginTop: 20 }}>
-          <StyledTextInput></StyledTextInput>
-          <StyledTextArea></StyledTextArea>
+          <StyledTextInput>
+            <TitleTxt>{story.title}</TitleTxt>
+          </StyledTextInput>
+          <StyledTextArea>
+            <MainTxt>{story.text}</MainTxt>
+          </StyledTextArea>
+
+          <PersonIcon
+            source={require("../../assets/PersonIcon.png")}
+          ></PersonIcon>
+          <MediaIcon source={require("../../assets/media.png")}></MediaIcon>
+          <BlockButtons>
+            <RepostBtn>
+              <RepostIcon
+                source={require("../../assets/repost.png")}
+              ></RepostIcon>
+            </RepostBtn>
+            <PlayBtn>
+              <PlayIcon source={require("../../assets/play.png")}></PlayIcon>
+            </PlayBtn>
+
+            <RepostBtn>
+              <RepostIcon
+                source={require("../../assets/repost.png")}
+              ></RepostIcon>
+            </RepostBtn>
+          </BlockButtons>
         </View>
       </StyledImageBackground>
     </Container>
