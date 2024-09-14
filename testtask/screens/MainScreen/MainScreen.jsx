@@ -49,6 +49,11 @@ import { setAuthToken } from "../../redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useFocusEffect } from "@react-navigation/native";
+import {
+  fetchHistory,
+  fetchLimit,
+  authenticateUser,
+} from "../../utils/apiService";
 
 export const MainScreen = () => {
   const animatedStyle1 = useCircleAnimation();
@@ -58,106 +63,70 @@ export const MainScreen = () => {
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pollingInterval, setPollingInterval] = useState(null);
+  const [limit, setLimit] = useState(true);
 
   const dispatch = useDispatch();
 
-  const generateChecksum = (deviceId, hasPremium, expiredAt) => {
-    const hashString = `${deviceId}:${hasPremium}:${expiredAt}aboba`;
-    return sha256(hashString).toString();
-  };
-
   const devId = Constants.sessionId;
-  const authenticateUser = async () => {
-    const date = new Date().toISOString();
-
-    console.log("id", devId);
-    try {
-      const response = await fetch(
-        "https://test.api.meteoraiapps.com/api/v1/auth/jwt",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            deviceId: devId,
-            hasPremium: true,
-            expiredAt: date,
-            checksum: generateChecksum(devId, true, date),
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Токен авторизации:", data.accessToken);
-        dispatch(setAuthToken(data.accessToken));
-      } else {
-        console.error("Ошибка при аутентификации, статус:", response.status);
-        Alert.alert("Ошибка", "Не удалось выполнить аутентификацию.");
-      }
-    } catch (error) {
-      console.error("Ошибка при аутентификации:", error);
-      Alert.alert("Ошибка", "Не удалось выполнить аутентификацию.");
-    }
-  };
-
-  const fetchHistory = async () => {
-    try {
-      const response = await fetch(
-        `https://test.api.meteoraiapps.com/api/v1/history/user/${devId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("User's generation history:", data);
-        setHistory(data);
-      } else {
-        console.error("Error fetching history, status:", response.status);
-        Alert.alert("Error", "Failed to fetch history.");
-      }
-    } catch (error) {
-      console.error("Error fetching history:", error);
-      Alert.alert("Error", "An error occurred while fetching the history.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    authenticateUser();
-  }, []);
   const token = useSelector((state) => state.auth.token);
-  useFocusEffect(
-    React.useCallback(() => {
-      if (token) {
-        // Начинаем поллинг при монтировании компонента
-        
-        const intervalId = setInterval(() => {
-          fetchHistory();
-        }, 1000);
-        setPollingInterval(intervalId);
 
-        return () => {
-          clearInterval(intervalId);
-        };
+  const handleAuthentication = async () => {
+    try {
+      const accessToken = await authenticateUser(devId);
+      dispatch(setAuthToken(accessToken));
+    } catch (error) {
+      console.error(error.message);
+      Alert.alert("Ошибка", error.message);
+    }
+  };
+
+  const loadHistory = async () => {
+    if (token) {
+      try {
+        const historyData = await fetchHistory(devId, token);
+        setHistory(historyData);
+      } catch (error) {
+        console.error(error.message);
+        Alert.alert("Ошибка", error.message);
+      } finally {
+        setIsLoading(false);
       }
-    }, [token])
-  );
+    }
+  };
 
-  const handleAddStory = () => {
-    if (history.length >= 3) {
+  const checkLimit = async () => {
+    try {
+      const canRequest = await fetchLimit(token);
+      setLimit(canRequest);
+    } catch (error) {
+      console.error(error.message);
+      Alert.alert("Ошибка", error.message);
+    }
+  };
+
+  const handleAddStory = async () => {
+    setIsLoading(true);
+    await checkLimit();
+    setIsLoading(false);
+
+    if (!limit) {
       setModalVisible(true);
     } else {
       navigation.navigate("TextSpeech");
     }
   };
+
+  useEffect(() => {
+    handleAuthentication();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (token) {
+        loadHistory();
+      }
+    }, [token])
+  );
 
   const handleStoryPress = (story) => {
     navigation.navigate("TextSpeechResult", { story });

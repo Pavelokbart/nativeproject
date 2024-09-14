@@ -20,7 +20,7 @@ export default function App() {
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Load">
-          <Stack.Screen
+          {/* <Stack.Screen
           name="Load"
           component={LoadScreen}
           options={{ headerShown: false, animationEnabled: false, }}
@@ -34,7 +34,7 @@ export default function App() {
           name="Subscribe"
           component={SubscribeScreen}
           options={{ headerShown: false, animationEnabled: false, }}
-        />
+        /> */}
           <Stack.Screen
             name="Main"
             component={MainScreen}
