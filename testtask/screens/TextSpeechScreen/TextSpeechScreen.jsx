@@ -1,16 +1,7 @@
-import React, { useState } from "react";
-import {
-  View,
-  Image,
-  TextInput,
-  ImageBackground,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
-import styled from "styled-components/native";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { View, Image, Alert } from "react-native";
+import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
-import { useEffect } from "react";
 import {
   Container,
   StyledImageBackground,
@@ -29,94 +20,60 @@ import {
   PersonBtn,
   PersonIcon,
 } from "./TextSpeechScreenStyles";
-import axios from "axios";
+import { fetchModels, enqueueTask } from "../../utils/apiService";
 
 const MAX_CHARS = 250;
 
 const TextSpeechScreen = () => {
   const [text, setText] = useState("");
   const [textTitle, setTextTitle] = useState("");
-
   const [models, setModels] = useState([]);
+
+  const token = useSelector((state) => state.auth.token);
+  const navigation = useNavigation();
 
   const clearText = () => {
     setText("");
     setTextTitle("");
   };
-  const navigation = useNavigation();
 
-  const token = useSelector((state) => state.auth.token);
-  console.log("token check", token);
-
-  const fetchModels = async () => {
+  const handleFetchModels = async () => {
     try {
-      const response = await fetch(
-        `https://test.api.meteoraiapps.com/api/v1/models`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-
-        setModels(data);
-      } else {
-        console.error("Error fetching history, status:", response.status);
-        Alert.alert("Error", "Failed to fetch history.");
-      }
+      const modelsData = await fetchModels(token);
+      setModels(modelsData);
     } catch (error) {
-      console.error("Error fetching history:", error);
-      Alert.alert("Error", "An error occurred while fetching the history.");
-    } finally {
-      setIsLoading(false);
+      Alert.alert("Error", "Failed to fetch models.");
     }
   };
-  useEffect(() => {
-    {
-      if (token) fetchModels();
-    }
-  }, [token]);
 
-  const enqueueTask = async () => {
+  const handleEnqueueTask = async () => {
     try {
-      
-      
+      const voiceId = models[0].id;
+      const image = models[0].image;
 
-      const response = await axios.post(
-        "https://test.api.meteoraiapps.com/api/v1/models/enqueue",
-        {
-          text: text,
-          voice_id: models[0].id,
-          title: textTitle,
-          image: models[0].image,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, 
-          },
-        }
+      const response = await enqueueTask(
+        token,
+        text,
+        textTitle,
+        voiceId,
+        image
       );
 
       if (response.status === 200 || response.status === 201) {
         Alert.alert("Success", "Task has been enqueued successfully");
       } else {
-        console.error("Request failed with status:", response.status);
         Alert.alert("Error", "Failed to enqueue the task.");
       }
     } catch (error) {
-      console.error(
-        "Error in POST request:",
-        error?.response?.data || error.message
-      );
       Alert.alert("Error", "An error occurred while sending the request.");
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      handleFetchModels();
+    }
+  }, [token]);
 
   return (
     <Container>
@@ -167,7 +124,7 @@ const TextSpeechScreen = () => {
             </CharCount>
           </Footer>
           <BlockBtn>
-            <StartBtn onPress={enqueueTask}>
+            <StartBtn onPress={handleEnqueueTask}>
               <StartImg
                 source={require("../../assets/StartBtn.png")}
               ></StartImg>

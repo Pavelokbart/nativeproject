@@ -7,7 +7,7 @@ import axios from "axios";
 
 const API_URL = "https://test.api.meteoraiapps.com/api/v1";
 
-// Генерация checksum для аутентификации
+
 const generateChecksum = (deviceId, hasPremium, expiredAt) => {
     const hashString = `${deviceId}:${hasPremium}:${expiredAt}aboba`;
     return sha256(hashString).toString();
@@ -36,10 +36,10 @@ export const authenticateUser = async (devId) => {
             const data = await response.json();
             return data.accessToken;
         } else {
-            throw new Error(`Ошибка при аутентификации, статус: ${response.status}`);
+            throw new Error(`Authentication error, status: ${response.status}`);
         }
     } catch (error) {
-        throw new Error(`Ошибка при аутентификации: ${error.message}`);
+        throw new Error(`Authentication error, status: ${error.message}`);
     }
 };
 
@@ -57,10 +57,10 @@ export const fetchHistory = async (devId, token) => {
             const data = await response.json();
             return data;
         } else {
-            throw new Error(`Ошибка при получении истории, статус: ${response.status}`);
+            throw new Error(`Error when getting the history, status:: ${response.status}`);
         }
     } catch (error) {
-        throw new Error(`Ошибка при получении истории: ${error.message}`);
+        throw new Error(`Error when getting the history: ${error.message}`);
     }
 };
 
@@ -78,9 +78,48 @@ export const fetchLimit = async (token) => {
             const data = await response.json();
             return data.canRequest;
         } else {
-            throw new Error(`Ошибка при проверке лимита, статус: ${response.status}`);
+            throw new Error(`Error checking the limit, status: ${response.status}`);
         }
     } catch (error) {
-        throw new Error(`Ошибка при проверке лимита: ${error.message}`);
+        throw new Error(`Error checking the limit: ${error.message}`);
+    }
+};
+
+export const fetchModels = async (token) => {
+    try {
+        const response = await axios.get(`${API_URL}/models`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(`Error receiving models: ${error.message}`);
+    }
+};
+
+
+export const enqueueTask = async (token, text, textTitle, voiceId, image) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/models/enqueue`,
+            {
+                text: text,
+                voice_id: voiceId,
+                title: textTitle,
+                image: image,
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response;
+    } catch (error) {
+        throw new Error(`Error sending the task${error.message}`);
     }
 };

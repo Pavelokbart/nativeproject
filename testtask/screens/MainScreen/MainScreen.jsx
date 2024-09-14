@@ -87,7 +87,7 @@ export const MainScreen = () => {
         setHistory(historyData);
       } catch (error) {
         console.error(error.message);
-        Alert.alert("Ошибка", error.message);
+        Alert.alert("Error", error.message);
       } finally {
         setIsLoading(false);
       }
@@ -100,7 +100,7 @@ export const MainScreen = () => {
       setLimit(canRequest);
     } catch (error) {
       console.error(error.message);
-      Alert.alert("Ошибка", error.message);
+      Alert.alert("Error", error.message);
     }
   };
 
