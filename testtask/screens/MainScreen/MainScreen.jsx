@@ -106,10 +106,10 @@ export const MainScreen = () => {
 
   const handleAddStory = async () => {
     setIsLoading(true);
-    await checkLimit();
+    const canRequest = await fetchLimit(token); // Get the latest limit state
     setIsLoading(false);
 
-    if (!limit) {
+    if (!canRequest) {
       setModalVisible(true);
     } else {
       navigation.navigate("TextSpeech");
