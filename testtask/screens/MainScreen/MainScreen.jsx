@@ -106,7 +106,7 @@ export const MainScreen = () => {
 
   const handleAddStory = async () => {
     setIsLoading(true);
-    const canRequest = await fetchLimit(token); // Get the latest limit state
+    const canRequest = await fetchLimit(token); 
     setIsLoading(false);
 
     if (!canRequest) {
@@ -119,6 +119,20 @@ export const MainScreen = () => {
   useEffect(() => {
     handleAuthentication();
   }, []);
+
+  useEffect(() => {
+    
+
+    const pollingInterval = setInterval(() => {
+      if (token) {
+        loadHistory();
+      }
+    }, 30000); 
+
+    return () => {
+      clearInterval(pollingInterval); 
+    };
+  }, [token]);
 
   useFocusEffect(
     React.useCallback(() => {
